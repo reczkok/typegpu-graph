@@ -1,17 +1,30 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { useAtom } from "jotai";
+import { createContext, useId } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
+  runOnJS,
+  SharedValue,
   useAnimatedStyle,
   useSharedValue,
-} from 'react-native-reanimated';
+} from "react-native-reanimated";
+import { Connectable } from "@/components/Connectable";
+import { topNodeAtom } from "@/stores";
 
-interface NodeProps {
+export interface NodeProps {
   title: string;
   inputs: string[];
   outputs: string[];
   initialX?: number;
   initialY?: number;
 }
+
+export const NodeTranslateCtx = createContext<
+  {
+    tx: SharedValue<number>;
+    ty: SharedValue<number>;
+  } | null
+>(null);
 
 export function GraphNode({
   title,
@@ -20,22 +33,22 @@ export function GraphNode({
   initialX = 0,
   initialY = 0,
 }: NodeProps) {
+  const id = useId();
   const positionX = useSharedValue(initialX);
   const positionY = useSharedValue(initialY);
   const startX = useSharedValue(0);
   const startY = useSharedValue(0);
+  const [topNode, setTopNode] = useAtom(topNodeAtom);
 
   const panGesture = Gesture.Pan()
     .onStart(() => {
+      runOnJS(setTopNode)(id);
       startX.value = positionX.value;
       startY.value = positionY.value;
     })
     .onUpdate((e) => {
       positionX.value = startX.value + e.translationX;
       positionY.value = startY.value + e.translationY;
-    })
-    .onEnd(() => {
-      // Position is already updated, no need to do anything
     });
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -47,76 +60,84 @@ export function GraphNode({
 
   return (
     <GestureDetector gesture={panGesture}>
-      <Animated.View style={[styles.node, animatedStyle]}>
-        <Text style={styles.nodeTitle}>{title}</Text>
+      <NodeTranslateCtx.Provider value={{ tx: positionX, ty: positionY }}>
+        <Animated.View
+          style={[styles.node, animatedStyle, {
+            zIndex: topNode === id ? 1 : 0,
+          }]}
+        >
+          <Text style={styles.nodeTitle}>{title}</Text>
 
-        <View style={styles.nodeBody}>
-          {/* Inputs on the left */}
-          <View style={styles.inputsContainer}>
-            {inputs.map((input, index) => (
-              <View key={`input-${index}`} style={styles.portRow}>
-                <View style={[styles.port, styles.inputPort]} />
-                <Text style={styles.portLabel}>{input}</Text>
-              </View>
-            ))}
-          </View>
+          <View style={styles.nodeBody}>
+            {/* Inputs on the left */}
+            <View style={styles.inputsContainer}>
+              {inputs.map((input) => (
+                <Connectable
+                  title={input}
+                  type="input"
+                  key={`input-${input}`}
+                />
+              ))}
+            </View>
 
-          {/* Outputs on the right */}
-          <View style={styles.outputsContainer}>
-            {outputs.map((output, index) => (
-              <View key={`output-${index}`} style={styles.portRow}>
-                <Text style={styles.portLabel}>{output}</Text>
-                <View style={[styles.port, styles.outputPort]} />
-              </View>
-            ))}
+            {/* Outputs on the right */}
+            <View style={styles.outputsContainer}>
+              {outputs.map((output) => (
+                <Connectable
+                  title={output}
+                  type="output"
+                  key={`output-${output}`}
+                />
+              ))}
+            </View>
           </View>
-        </View>
-      </Animated.View>
+        </Animated.View>
+      </NodeTranslateCtx.Provider>
     </GestureDetector>
   );
 }
 
 const styles = StyleSheet.create({
   node: {
-    position: 'absolute',
-    backgroundColor: '#2a2a2a',
+    position: "absolute",
+    backgroundColor: "#2a2a2a",
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: "#444",
     minWidth: 150,
     padding: 8,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
   },
   nodeTitle: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 14,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
     marginBottom: 8,
     paddingBottom: 4,
     borderBottomWidth: 1,
-    borderBottomColor: '#444',
+    borderBottomColor: "#444",
   },
   nodeBody: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
   },
   inputsContainer: {
     flex: 1,
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
   },
   outputsContainer: {
     flex: 1,
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   portRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginVertical: 4,
   },
   port: {
@@ -126,17 +147,17 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   inputPort: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#2E7D32',
+    backgroundColor: "#4CAF50",
+    borderColor: "#2E7D32",
     marginRight: 6,
   },
   outputPort: {
-    backgroundColor: '#FF9800',
-    borderColor: '#E65100',
+    backgroundColor: "#FF9800",
+    borderColor: "#E65100",
     marginLeft: 6,
   },
   portLabel: {
-    color: '#ccc',
+    color: "#ccc",
     fontSize: 12,
   },
 });

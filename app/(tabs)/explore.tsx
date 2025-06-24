@@ -1,32 +1,34 @@
-import { Canvas } from '@/components/Canvas';
-import { GraphNode } from '@/components/GraphNode';
+import { useAtomValue } from "jotai";
+import { useEffect } from "react";
+import { Canvas } from "@/components/Canvas";
+import { GraphNode } from "@/components/GraphNode";
+import { graphNodesAtom } from "@/stores";
 
 export default function TabTwoScreen() {
+  const nodes = useAtomValue(graphNodesAtom);
+
+  useEffect(() => {
+    console.log("Initial node positions:");
+    for (const node of Object.values(nodes)) {
+      console.log(`Node ${node.title} initial position:`, {
+        x: node.initialX,
+        y: node.initialY,
+      });
+    }
+  }, [nodes]);
+
   return (
     <Canvas>
-      <GraphNode
-        title="Add Node"
-        inputs={['A', 'B']}
-        outputs={['Result']}
-        initialX={50}
-        initialY={100}
-      />
-
-      <GraphNode
-        title="Multiply Node"
-        inputs={['X', 'Y']}
-        outputs={['Product']}
-        initialX={250}
-        initialY={200}
-      />
-
-      <GraphNode
-        title="Color Node"
-        inputs={['R', 'G', 'B']}
-        outputs={['RGB', 'HSV']}
-        initialX={100}
-        initialY={350}
-      />
+      {Object.values(nodes).map((node) => (
+        <GraphNode
+          key={node.title}
+          title={node.title}
+          inputs={node.inputs}
+          outputs={node.outputs}
+          initialX={node.initialX}
+          initialY={node.initialY}
+        />
+      ))}
     </Canvas>
   );
 }

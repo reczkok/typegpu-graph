@@ -3,7 +3,12 @@
     {
       "type": "radon-ide",
       "request": "launch",
-      "name": "Radon IDE panel"
+      "name": "Radon IDE panel",
+      "ios": {
+        "scheme": "typegpugraph"
+      },
+      "android": {},
+      "eas": {}
     }
   ]
 }

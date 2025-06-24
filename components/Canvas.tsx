@@ -1,49 +1,54 @@
-import type React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import type React from "react";
+import { StyleSheet, View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
-} from 'react-native-reanimated';
+} from "react-native-reanimated";
+import ConnectionsOverlay from "@/components/ConnectionsOverlay";
 
 interface CanvasProps {
   children: React.ReactNode;
 }
 
 export function Canvas({ children }: CanvasProps) {
-  const offsetX = useSharedValue(0);
-  const offsetY = useSharedValue(0);
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const prevTranslateX = useSharedValue(0);
+  const prevTranslateY = useSharedValue(0);
   const scale = useSharedValue(1);
-  const savedOffsetX = useSharedValue(0);
-  const savedOffsetY = useSharedValue(0);
-  const savedScale = useSharedValue(1);
+  const prevScale = useSharedValue(1);
 
   const panGesture = Gesture.Pan()
     .onStart(() => {
-      savedOffsetX.value = offsetX.value;
-      savedOffsetY.value = offsetY.value;
+      prevTranslateX.value = translateX.value;
+      prevTranslateY.value = translateY.value;
     })
     .onUpdate((e) => {
-      offsetX.value = savedOffsetX.value + e.translationX;
-      offsetY.value = savedOffsetY.value + e.translationY;
-    });
+      translateX.value = prevTranslateX.value + e.translationX;
+      translateY.value = prevTranslateY.value + e.translationY;
+    })
+    .runOnJS(true);
 
   const pinchGesture = Gesture.Pinch()
     .onStart(() => {
-      savedScale.value = scale.value;
+      prevScale.value = scale.value;
     })
     .onUpdate((e) => {
-      scale.value = savedScale.value * e.scale;
-      // Clamp zoom between 0.5x and 3x
-      scale.value = Math.max(0.5, Math.min(3, scale.value));
-    });
+      const [minScale, maxScale] = [0.5, 3];
+      scale.value = Math.min(
+        maxScale,
+        Math.max(minScale, prevScale.value * e.scale),
+      );
+    })
+    .runOnJS(true);
 
   const composedGesture = Gesture.Simultaneous(panGesture, pinchGesture);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateX: offsetX.value },
-      { translateY: offsetY.value },
+      { translateX: translateX.value },
+      { translateY: translateY.value },
       { scale: scale.value },
     ],
   }));
@@ -51,8 +56,11 @@ export function Canvas({ children }: CanvasProps) {
   return (
     <View style={styles.container}>
       <GestureDetector gesture={composedGesture}>
-        <Animated.View style={[styles.canvas, animatedStyle]}>
-          {children}
+        <Animated.View style={styles.canvas}>
+          <ConnectionsOverlay />
+          <Animated.View style={animatedStyle}>
+            {children}
+          </Animated.View>
         </Animated.View>
       </GestureDetector>
     </View>
@@ -62,10 +70,11 @@ export function Canvas({ children }: CanvasProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: "#1a1a1a",
   },
   canvas: {
     flex: 1,
-    position: 'relative',
+    width: "100%",
+    height: "100%",
   },
 });
