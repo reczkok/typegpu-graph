@@ -1,6 +1,6 @@
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { createContext } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   runOnJS,
@@ -10,9 +10,9 @@ import Animated, {
 } from "react-native-reanimated";
 import { Connectable } from "@/components/Connectable";
 import { NodeRegistry } from "@/runtime/nodeRegistry";
-import { topNodeAtom } from "@/stores";
-import { compiledGraphAtom } from "@/stores/graphDataAtoms";
+import { graphNodesAtom, removeNodeAtom, topNodeAtom } from "@/stores";
 import type { GraphNode } from "@/stores/graphDataAtoms";
+import { compiledGraphAtom } from "@/stores/graphDataAtoms";
 
 export const NodeTranslateCtx = createContext<
   {
@@ -22,12 +22,14 @@ export const NodeTranslateCtx = createContext<
 >(null);
 
 export function GraphNodeView({ node }: { node: GraphNode }) {
-  const { id, type, x, y } = node;
+  const { id, type, x, y, data } = node;
   const positionX = useSharedValue(x);
   const positionY = useSharedValue(y);
   const startX = useSharedValue(0);
   const startY = useSharedValue(0);
   const [topNode, setTopNode] = useAtom(topNodeAtom);
+  const setNodes = useSetAtom(graphNodesAtom);
+  const removeNode = useSetAtom(removeNodeAtom);
   const compiledGraph = useAtomValue(compiledGraphAtom);
 
   const panGesture = Gesture.Pan()
@@ -53,6 +55,14 @@ export function GraphNodeView({ node }: { node: GraphNode }) {
     return null; // Or some error component
   }
 
+  const handleValueChange = (newValue: string) => {
+    setNodes((prevNodes) =>
+      prevNodes.map((n) =>
+        n.id === id ? { ...n, data: { ...n.data, value: newValue } } : n
+      )
+    );
+  };
+
   return (
     <GestureDetector gesture={panGesture}>
       <NodeTranslateCtx.Provider value={{ tx: positionX, ty: positionY }}>
@@ -63,6 +73,14 @@ export function GraphNodeView({ node }: { node: GraphNode }) {
             { zIndex: topNode === id ? 1 : 0 },
           ]}
         >
+          {type !== "output" && type !== "input" && (
+            <Pressable
+              style={styles.removeButton}
+              onPress={() => removeNode(id)}
+            >
+              <Text style={styles.removeButtonText}>X</Text>
+            </Pressable>
+          )}
           <Text style={styles.nodeTitle}>{nodeImpl.type}</Text>
 
           <View style={styles.nodeBody}>
@@ -90,6 +108,15 @@ export function GraphNodeView({ node }: { node: GraphNode }) {
               ))}
             </View>
           </View>
+
+          {node.type === "constant" && (
+            <TextInput
+              style={styles.inputField}
+              value={data?.value?.toString() ?? "1.0"}
+              onChangeText={handleValueChange}
+              keyboardType="numeric"
+            />
+          )}
 
           {node.type === "output" && (
             <Text style={styles.outputResult}>{compiledGraph}</Text>
@@ -168,6 +195,33 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: "#333",
     flexWrap: "nowrap",
+  },
+  inputField: {
+    backgroundColor: "#333",
+    color: "#fff",
+    borderWidth: 1,
+    borderColor: "#555",
+    borderRadius: 4,
+    padding: 4,
+    marginTop: 8,
+    fontSize: 12,
+  },
+  removeButton: {
+    position: "absolute",
+    top: -8,
+    left: -8,
+    backgroundColor: "#ff3b30",
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 2,
+  },
+  removeButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 12,
   },
   portLabel: {
     color: "#ccc",

@@ -30,11 +30,12 @@ export function compileGraph(
       if (!connection) {
         args[input.name] = "0"; // Default to 0 if unconnected
       } else {
+        if (!nodes.has(connection.from.nodeId)) continue;
         args[input.name] = walk(connection.from.nodeId, connection.from.socket);
       }
     }
 
-    const result = impl.compute(args, nodeId);
+    const result = impl.compute(args, node);
     for (const [sock, expr] of Object.entries(result)) {
       const sym = `${nodeId}_${sock}`;
       codeLines.push(`let ${sym} = ${expr};`);
@@ -58,13 +59,14 @@ export function compileGraph(
         if (!connection) {
           args[input.name] = "0";
         } else {
+          if (!nodes.has(connection.from.nodeId)) continue;
           args[input.name] = walk(
             connection.from.nodeId,
             connection.from.socket,
           );
         }
       }
-      const result = outputImpl.compute(args, nodeId);
+      const result = outputImpl.compute(args, node);
       finalOutput = result.rgba;
     }
   }

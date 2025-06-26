@@ -37,3 +37,48 @@ registerNode({
     return { out: `(${a} + ${b})` };
   },
 });
+
+registerNode({
+  type: "constant",
+  inputs: [],
+  outputs: [{ name: "out", kind: "number" }],
+  compute(args, node) {
+    return { out: `${parseFloat(node.data?.value ?? 1.0).toFixed(4)}` };
+  },
+});
+
+registerNode({
+  type: "multiply",
+  inputs: [
+    { name: "a", kind: "number" },
+    { name: "b", kind: "number" },
+  ],
+  outputs: [{ name: "out", kind: "number" }],
+  compute({ a, b }) {
+    return { out: `(${a} * ${b})` };
+  },
+});
+
+registerNode({
+  type: "divide",
+  inputs: [
+    { name: "a", kind: "number" },
+    { name: "b", kind: "number" },
+  ],
+  outputs: [{ name: "out", kind: "number" }],
+  compute({ a, b }) {
+    return { out: `(${a} / ${b})` };
+  },
+});
+
+registerNode({
+  type: "modulo",
+  inputs: [
+    { name: "a", kind: "number" },
+    { name: "b", kind: "number" },
+  ],
+  outputs: [{ name: "out", kind: "number" }],
+  compute({ a, b }) {
+    return { out: `(${a} % ${b})` };
+  },
+});

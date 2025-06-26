@@ -1,3 +1,5 @@
+import type { GraphNode } from "@/stores/graphDataAtoms";
+
 export type SocketKind = "number";
 export interface Socket {
   name: string;
@@ -17,7 +19,7 @@ export interface NodeImpl {
    * must return an object whose keys are this.outputs[].name
    * and whose values are *new* symbols to pass downstream.
    */
-  compute(args: Record<string, string>, nodeId: string): Record<string, string>;
+  compute(args: Record<string, string>, node: GraphNode): Record<string, string>;
 }
 
 /** central registry */
