@@ -1,3 +1,6 @@
+import type { TgpuFragmentFn } from "typegpu";
+import tgpu from "typegpu";
+import * as d from "typegpu/data";
 import type { Connection } from "@/stores/connectionsAtoms";
 import type { GraphNode } from "@/stores/graphDataAtoms";
 import { NodeRegistry } from "./nodeRegistry.ts";
@@ -5,7 +8,7 @@ import { NodeRegistry } from "./nodeRegistry.ts";
 export function compileGraph(
   nodes: Map<string, GraphNode>,
   connections: Connection[],
-): string {
+): TgpuFragmentFn<{ uv: d.Vec2f }, d.Vec4f> {
   const emitted = new Set<string>();
   const codeLines: string[] = [];
 
@@ -71,5 +74,19 @@ export function compileGraph(
     }
   }
 
-  return `${codeLines.join("\n")}\n${finalOutput}`;
+  const generated = `${codeLines.join("\n")}\n`;
+
+  const fragmentFn = tgpu["~unstable"].fragmentFn({
+    in: {
+      uv: d.vec2f,
+    },
+    out: d.vec4f,
+  })`{
+    let u = in.uv.x;
+    let v = in.uv.y;
+    ${generated}
+    return ${finalOutput};
+  }`;
+
+  return fragmentFn;
 }

@@ -13,6 +13,8 @@ import { NodeRegistry } from "@/runtime/nodeRegistry";
 import { graphNodesAtom, removeNodeAtom, topNodeAtom } from "@/stores";
 import type { GraphNode } from "@/stores/graphDataAtoms";
 import { compiledGraphAtom } from "@/stores/graphDataAtoms";
+import { ShaderCanvas } from "@/components/ShaderCanvas";
+import tgpu from "typegpu";
 
 export const NodeTranslateCtx = createContext<
   {
@@ -118,9 +120,7 @@ export function GraphNodeView({ node }: { node: GraphNode }) {
             />
           )}
 
-          {node.type === "output" && (
-            <Text style={styles.outputResult}>{compiledGraph}</Text>
-          )}
+          {node.type === "output" && <ShaderCanvas />}
         </Animated.View>
       </NodeTranslateCtx.Provider>
     </GestureDetector>
