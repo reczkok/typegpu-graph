@@ -2,24 +2,28 @@ import { atom } from "jotai";
 import { makeMutable } from "react-native-reanimated";
 
 export type Connection = {
-  inputNodeId: string;
-  outputNodeId: string;
+  from: { nodeId: string; socket: string };
+  to: { nodeId: string; socket: string };
 };
 
 export const connectionsAtom = atom<Connection[]>([]);
+
 export const addConnectionAtom = atom(
   null,
   (get, set, connection: Connection) => {
     const connections = get(connectionsAtom);
     const existingConnection = connections.find(
-      (conn) => conn.inputNodeId === connection.inputNodeId,
+      (conn) =>
+        conn.to.nodeId === connection.to.nodeId &&
+        conn.to.socket === connection.to.socket,
     );
 
     if (existingConnection) {
       set(
         connectionsAtom,
         connections.map((conn) =>
-          conn.inputNodeId === existingConnection.inputNodeId
+          conn.to.nodeId === existingConnection.to.nodeId &&
+            conn.to.socket === existingConnection.to.socket
             ? connection
             : conn
         ),
@@ -29,6 +33,7 @@ export const addConnectionAtom = atom(
     }
   },
 );
+
 export const removeConnectionsAtom = atom(
   null,
   (get, set, nodeId: string) => {
@@ -36,7 +41,7 @@ export const removeConnectionsAtom = atom(
     set(
       connectionsAtom,
       connections.filter(
-        (conn) => conn.inputNodeId !== nodeId && conn.outputNodeId !== nodeId,
+        (conn) => conn.from.nodeId !== nodeId && conn.to.nodeId !== nodeId,
       ),
     );
   },

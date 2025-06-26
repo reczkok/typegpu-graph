@@ -1,23 +1,17 @@
 import { useAtom } from "jotai";
-import { createContext, useId } from "react";
+import { createContext } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   runOnJS,
-  SharedValue,
+  type SharedValue,
   useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated";
 import { Connectable } from "@/components/Connectable";
+import { NodeRegistry } from "@/runtime/nodeRegistry";
 import { topNodeAtom } from "@/stores";
-
-export interface NodeProps {
-  title: string;
-  inputs: string[];
-  outputs: string[];
-  initialX?: number;
-  initialY?: number;
-}
+import type { GraphNode } from "@/stores/graphDataAtoms";
 
 export const NodeTranslateCtx = createContext<
   {
@@ -26,16 +20,10 @@ export const NodeTranslateCtx = createContext<
   } | null
 >(null);
 
-export function GraphNode({
-  title,
-  inputs,
-  outputs,
-  initialX = 0,
-  initialY = 0,
-}: NodeProps) {
-  const id = useId();
-  const positionX = useSharedValue(initialX);
-  const positionY = useSharedValue(initialY);
+export function GraphNodeView({ node }: { node: GraphNode }) {
+  const { id, type, x, y } = node;
+  const positionX = useSharedValue(x);
+  const positionY = useSharedValue(y);
   const startX = useSharedValue(0);
   const startY = useSharedValue(0);
   const [topNode, setTopNode] = useAtom(topNodeAtom);
@@ -58,35 +46,44 @@ export function GraphNode({
     ],
   }));
 
+  const nodeImpl = NodeRegistry.get(type);
+  if (!nodeImpl) {
+    return null; // Or some error component
+  }
+
   return (
     <GestureDetector gesture={panGesture}>
       <NodeTranslateCtx.Provider value={{ tx: positionX, ty: positionY }}>
         <Animated.View
-          style={[styles.node, animatedStyle, {
-            zIndex: topNode === id ? 1 : 0,
-          }]}
+          style={[
+            styles.node,
+            animatedStyle,
+            { zIndex: topNode === id ? 1 : 0 },
+          ]}
         >
-          <Text style={styles.nodeTitle}>{title}</Text>
+          <Text style={styles.nodeTitle}>{nodeImpl.type}</Text>
 
           <View style={styles.nodeBody}>
             {/* Inputs on the left */}
             <View style={styles.inputsContainer}>
-              {inputs.map((input) => (
+              {nodeImpl.inputs.map((input) => (
                 <Connectable
-                  title={input}
+                  key={`input-${id}-${input.name}`}
+                  nodeId={id}
+                  socket={input}
                   type="input"
-                  key={`input-${input}`}
                 />
               ))}
             </View>
 
             {/* Outputs on the right */}
             <View style={styles.outputsContainer}>
-              {outputs.map((output) => (
+              {nodeImpl.outputs.map((output) => (
                 <Connectable
-                  title={output}
+                  key={`output-${id}-${output.name}`}
+                  nodeId={id}
+                  socket={output}
                   type="output"
-                  key={`output-${output}`}
                 />
               ))}
             </View>

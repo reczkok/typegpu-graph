@@ -1,5 +1,5 @@
 import { useSetAtom } from "jotai";
-import { useContext, useId } from "react";
+import { useContext } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -9,19 +9,20 @@ import Animated, {
   useDerivedValue,
 } from "react-native-reanimated";
 import { NodeTranslateCtx } from "@/components/GraphNode";
+import type { Socket } from "@/runtime/nodeRegistry";
 import {
   addConnectionAtom,
   nodePositionsData,
   removeConnectionsAtom,
 } from "@/stores";
 
-interface NodeProps {
-  title: string;
+interface ConnectableProps {
+  nodeId: string;
+  socket: Socket;
   type: "input" | "output";
 }
 
-export function Connectable({ title, type }: NodeProps) {
-  const id = useId();
+export function Connectable({ nodeId, socket, type }: ConnectableProps) {
   const addConnection = useSetAtom(addConnectionAtom);
   const removeConnections = useSetAtom(removeConnectionsAtom);
   const ref = useAnimatedRef<Animated.View>();
@@ -29,12 +30,11 @@ export function Connectable({ title, type }: NodeProps) {
   const { tx, ty } = useContext(NodeTranslateCtx)!;
 
   useDerivedValue(() => {
-    if (!id) return;
     const m = measure(ref);
     if (!m) return;
     nodePositionsData.value = {
       ...nodePositionsData.value,
-      [id]: {
+      [nodeId + "-" + socket.name]: {
         x: m.pageX + m.width / 2,
         y: m.pageY + m.height / 2,
         type,
@@ -42,11 +42,10 @@ export function Connectable({ title, type }: NodeProps) {
     };
   }, [tx, ty]);
 
-  const longPressGesture = Gesture.LongPress()
-    .onStart(() => {
-      console.log(`Long press on ${title}, removing connections`);
-      runOnJS(removeConnections)(id);
-    });
+  const longPressGesture = Gesture.LongPress().onStart(() => {
+    console.log(`Long press on ${socket.name}, removing connections`);
+    runOnJS(removeConnections)(nodeId);
+  });
 
   const panGesture = Gesture.Pan().onEnd((e) => {
     const pos = {
@@ -56,10 +55,10 @@ export function Connectable({ title, type }: NodeProps) {
     let closestNode: string | null = null;
     let closestDistance = Infinity;
 
-    console.log(`Node ${title} position:`, pos);
+    console.log(`Node ${socket.name} position:`, pos);
 
     for (const [otherId, otherPos] of Object.entries(nodePositionsData.value)) {
-      if (otherId === id || otherPos.type === type) {
+      if (otherId === (nodeId + "-" + socket.name) || otherPos.type === type) {
         continue;
       }
       const distance = Math.sqrt(
@@ -67,7 +66,7 @@ export function Connectable({ title, type }: NodeProps) {
       );
 
       console.log(
-        `Distance from ${title} to ${otherId}: ${distance.toFixed(2)}`,
+        `Distance from ${socket.name} to ${otherId}: ${distance.toFixed(2)}`,
       );
       if (distance < closestDistance) {
         closestDistance = distance;
@@ -76,15 +75,22 @@ export function Connectable({ title, type }: NodeProps) {
     }
 
     if (closestNode) {
+      const [targetNodeId, targetSocketName] = closestNode.split("-");
       if (closestDistance < 50) {
-        console.log(`Connecting ${title} to ${closestNode}`);
+        console.log(`Connecting ${socket.name} to ${closestNode}`);
         runOnJS(addConnection)({
-          inputNodeId: type === "input" ? id : closestNode,
-          outputNodeId: type === "output" ? id : closestNode,
+          from: {
+            nodeId: type === "output" ? nodeId : targetNodeId,
+            socket: type === "output" ? socket.name : targetSocketName,
+          },
+          to: {
+            nodeId: type === "input" ? nodeId : targetNodeId,
+            socket: type === "input" ? socket.name : targetSocketName,
+          },
         });
       } else {
         console.log(
-          `No close enough node found for ${title}, closest was ${closestNode} at distance ${
+          `No close enough node found for ${socket.name}, closest was ${closestNode} at distance ${
             closestDistance.toFixed(
               2,
             )
@@ -92,14 +98,11 @@ export function Connectable({ title, type }: NodeProps) {
         );
       }
     } else {
-      console.log(`No connection made for ${title}`);
+      console.log(`No connection made for ${socket.name}`);
     }
   });
 
-  const combinedGesture = Gesture.Race(
-    longPressGesture,
-    panGesture,
-  );
+  const combinedGesture = Gesture.Race(longPressGesture, panGesture);
 
   return (
     <GestureDetector gesture={combinedGesture}>
@@ -113,7 +116,7 @@ export function Connectable({ title, type }: NodeProps) {
             type === "input" ? styles.inputPort : styles.outputPort,
           ]}
         />
-        <Text style={styles.portLabel}>{title}</Text>
+        <Text style={styles.portLabel}>{socket.name}</Text>
       </Animated.View>
     </GestureDetector>
   );

@@ -1,7 +1,7 @@
 import { useAtomValue } from "jotai";
 import { StyleSheet } from "react-native";
 import Animated, { useAnimatedProps } from "react-native-reanimated";
-import Svg, { Path } from "react-native-svg";
+import Svg, { Path, PathProps } from "react-native-svg";
 import { connectionsAtom, nodePositionsData } from "@/stores";
 import type { Connection } from "@/stores/connectionsAtoms";
 
@@ -24,16 +24,25 @@ export default function ConnectionsOverlay() {
   return (
     <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
       {connections.map((conn) => (
-        <Wire key={`${conn.inputNodeId}-${conn.outputNodeId}`} {...conn} />
+        <Wire
+          key={`${conn.from.nodeId}-${conn.from.socket}-${conn.to.nodeId}-${conn.to.socket}`}
+          connection={conn}
+        />
       ))}
     </Svg>
   );
 }
 
-function Wire({ inputNodeId, outputNodeId }: Connection) {
-  const animatedProps = useAnimatedProps(() => {
-    const out = nodePositionsData.value[outputNodeId]; // output socket centre
-    const inp = nodePositionsData.value[inputNodeId]; // input socket centre
+function Wire({ connection }: { connection: Connection }) {
+  const animatedProps = useAnimatedProps<PathProps>(() => {
+    const out = nodePositionsData
+      .value[`${connection.from.nodeId}-${connection.from.socket}`]; // output socket centre
+    const inp = nodePositionsData
+      .value[`${connection.to.nodeId}-${connection.to.socket}`]; // input socket centre
+
+    if (!out || !inp) {
+      return { d: "", strokeWidth: 0 };
+    }
 
     // Apply stub offsets
     const startX = out.x + OUTPUT_STUB;
@@ -58,17 +67,17 @@ function Wire({ inputNodeId, outputNodeId }: Connection) {
      *   C      – cubic Bézier to end stub (smooth curve)
      *   L      – short stub into input
      */
-    const d = `M ${out.x} ${out.y} ` + // raw output centre
-      `L ${startX} ${startY} ` + // output stub
-      `C ${cp1X} ${cp1Y} ${cp2X} ${cp2Y} ${endX} ${endY} ` + // curve
-      `L ${inp.x} ${inp.y}`; // input stub
+    const d = `M ${out.x} ${out.y} ` +
+      `L ${startX} ${startY} ` +
+      `C ${cp1X} ${cp1Y} ${cp2X} ${cp2Y} ${endX} ${endY} ` +
+      `L ${inp.x} ${inp.y}`;
 
     return {
       d,
       strokeWidth: 4,
       stroke: "#00BFFF",
       fill: "none",
-    } as const;
+    };
   });
 
   return <AnimatedPath animatedProps={animatedProps} />;

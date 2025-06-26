@@ -1,11 +1,13 @@
 import type React from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated";
 import ConnectionsOverlay from "@/components/ConnectionsOverlay";
+import { useAtomValue } from "jotai";
+import { compiledGraphAtom } from "@/stores/graphDataAtoms";
 
 interface CanvasProps {
   children: React.ReactNode;
@@ -53,6 +55,9 @@ export function Canvas({ children }: CanvasProps) {
     ],
   }));
 
+  const compiledGraph = useAtomValue(compiledGraphAtom);
+  console.log("Compiled Graph:", compiledGraph);
+
   return (
     <View style={styles.container}>
       <GestureDetector gesture={composedGesture}>
@@ -63,6 +68,7 @@ export function Canvas({ children }: CanvasProps) {
           </Animated.View>
         </Animated.View>
       </GestureDetector>
+      {/* <Text style={styles.compiledGraphText}>{compiledGraph}</Text> */}
     </View>
   );
 }
@@ -76,5 +82,13 @@ const styles = StyleSheet.create({
     flex: 1,
     width: "100%",
     height: "100%",
+  },
+  compiledGraphText: {
+    position: "absolute",
+    bottom: 20,
+    left: 20,
+    color: "#fff",
+    fontSize: 12,
+    fontFamily: "monospace",
   },
 });

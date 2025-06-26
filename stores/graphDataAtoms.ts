@@ -1,27 +1,35 @@
 import { atom } from "jotai";
-import type { NodeProps } from "@/components/GraphNode";
+import "@/runtime/builtinNodes";
+import { compileGraph } from "@/runtime/compileGraph";
+import { connectionsAtom } from "./connectionsAtoms";
+
+export interface GraphNode {
+  id: string;
+  type: string;
+  x: number;
+  y: number;
+}
+
+const initialNodes: GraphNode[] = [
+  { id: "input_1", type: "input", x: 50, y: 100 },
+  { id: "add_1", type: "add", x: 250, y: 150 },
+  { id: "output_1", type: "output", x: 450, y: 200 },
+];
 
 export const topNodeAtom = atom<string | null>(null);
-export const graphNodesAtom = atom<Record<string, NodeProps>>({
-  "Add Node": {
-    title: "Add Node",
-    inputs: ["A", "B"],
-    outputs: ["Result"],
-    initialX: 50,
-    initialY: 100,
-  },
-  "Multiply Node": {
-    title: "Multiply Node",
-    inputs: ["X", "Y"],
-    outputs: ["Product"],
-    initialX: 250,
-    initialY: 200,
-  },
-  "Color Node": {
-    title: "Color Node",
-    inputs: ["R", "G", "B"],
-    outputs: ["RGB", "HSV"],
-    initialX: 100,
-    initialY: 350,
-  },
+export const graphNodesAtom = atom<GraphNode[]>(initialNodes);
+
+export const nodesMapAtom = atom((get) => {
+  const nodes = get(graphNodesAtom);
+  const map = new Map<string, GraphNode>();
+  for (const node of nodes) {
+    map.set(node.id, node);
+  }
+  return map;
+});
+
+export const compiledGraphAtom = atom((get) => {
+  const nodes = get(nodesMapAtom);
+  const connections = get(connectionsAtom);
+  return compileGraph(nodes, connections);
 });
