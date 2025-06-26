@@ -5,18 +5,10 @@ import Svg, { Path, type PathProps } from "react-native-svg";
 import { connectionsAtom, nodePositionsData } from "@/stores";
 import type { Connection } from "@/stores/connectionsAtoms";
 
-// Reanimated-friendly animated SVG Path component
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
-/**
- * Small horizontal “stubs” so the cable leaves an output slightly rightwards
- * and enters an input slightly leftwards, lifting the line off the node box.
- */
-const OUTPUT_STUB = 64; // px →
-const INPUT_STUB = -64; // px ←
-
-/** Max horizontal distance each Bézier control point sticks out from the stub */
-const CURVE_RADIUS = 128; // px
+const PORT_OFFSET = 10;
+const CURVE_RADIUS = 128;
 
 export default function ConnectionsOverlay() {
   const connections = useAtomValue(connectionsAtom);
@@ -47,9 +39,9 @@ function Wire({ connection }: { connection: Connection }) {
     }
 
     // Apply stub offsets
-    const startX = out.x + OUTPUT_STUB;
+    const startX = out.x + out.width / 2 + PORT_OFFSET;
     const startY = out.y;
-    const endX = inp.x + INPUT_STUB;
+    const endX = inp.x - inp.width / 2 - PORT_OFFSET;
     const endY = inp.y;
 
     // Horizontal distance between stubs – determines how much we can curve

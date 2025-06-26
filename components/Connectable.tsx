@@ -37,6 +37,8 @@ export function Connectable({ nodeId, socket, type }: ConnectableProps) {
       [`${nodeId}-${socket.name}`]: {
         x: m.pageX + m.width / 2,
         y: m.pageY + m.height / 2,
+        width: m.width,
+        height: m.height,
         type,
       },
     };
