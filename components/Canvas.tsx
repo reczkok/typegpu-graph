@@ -6,6 +6,7 @@ import Animated, {
   useSharedValue,
 } from "react-native-reanimated";
 import ConnectionsOverlay from "@/components/ConnectionsOverlay";
+import { GhostConnection } from "@/components/GhostConnection";
 
 interface CanvasProps {
   children: React.ReactNode;
@@ -55,6 +56,7 @@ export function Canvas({ children }: CanvasProps) {
     <View style={styles.container}>
       <GestureDetector gesture={composedGesture}>
         <Animated.View style={styles.canvas}>
+          <GhostConnection />
           <ConnectionsOverlay />
           <Animated.View style={animatedStyle}>
             {children}

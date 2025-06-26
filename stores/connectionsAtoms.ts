@@ -58,3 +58,12 @@ export type NodePositions = Record<
   }
 >;
 export const nodePositionsData = makeMutable<NodePositions>({});
+
+export const isConnecting = makeMutable(false);
+export const ghostConnectionStart = makeMutable<{ x: number; y: number } | null>(
+  null,
+);
+export const ghostConnectionEnd = makeMutable<{ x: number; y: number } | null>(
+  null,
+);
+export const ghostConnectionSnapTarget = makeMutable<string | null>(null);

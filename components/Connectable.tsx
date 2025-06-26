@@ -12,6 +12,10 @@ import { NodeTranslateCtx } from "@/components/GraphNode";
 import type { Socket } from "@/runtime/nodeRegistry";
 import {
   addConnectionAtom,
+  ghostConnectionEnd,
+  ghostConnectionSnapTarget,
+  ghostConnectionStart,
+  isConnecting,
   nodePositionsData,
   removeConnectionsAtom,
 } from "@/stores";
@@ -49,60 +53,89 @@ export function Connectable({ nodeId, socket, type }: ConnectableProps) {
     runOnJS(removeConnections)(nodeId);
   });
 
-  const panGesture = Gesture.Pan().onEnd((e) => {
-    const pos = {
-      pageX: e.absoluteX,
-      pageY: e.absoluteY,
-    };
-    let closestNode: string | null = null;
-    let closestDistance = Number.POSITIVE_INFINITY;
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
+      const m = measure(ref);
+      if (!m) return;
+      isConnecting.value = true;
+      ghostConnectionStart.value = {
+        x: m.pageX + m.width / 2,
+        y: m.pageY + m.height / 2,
+      };
+    })
+    .onUpdate((e) => {
+      ghostConnectionEnd.value = { x: e.absoluteX, y: e.absoluteY };
 
-    console.log(`Node ${socket.name} position:`, pos);
+      let closestNode: string | null = null;
+      let closestDistance = Number.POSITIVE_INFINITY;
 
-    for (const [otherId, otherPos] of Object.entries(nodePositionsData.value)) {
-      if (otherId === (`${nodeId}-${socket.name}`) || otherPos.type === type) {
-        continue;
-      }
-      const distance = Math.sqrt(
-        (pos.pageX - otherPos.x) ** 2 + (pos.pageY - otherPos.y) ** 2,
-      );
-
-      console.log(
-        `Distance from ${socket.name} to ${otherId}: ${distance.toFixed(2)}`,
-      );
-      if (distance < closestDistance) {
-        closestDistance = distance;
-        closestNode = otherId;
-      }
-    }
-
-    if (closestNode) {
-      const [targetNodeId, targetSocketName] = closestNode.split("-");
-      if (closestDistance < 50) {
-        console.log(`Connecting ${socket.name} to ${closestNode}`);
-        runOnJS(addConnection)({
-          from: {
-            nodeId: type === "output" ? nodeId : targetNodeId,
-            socket: type === "output" ? socket.name : targetSocketName,
-          },
-          to: {
-            nodeId: type === "input" ? nodeId : targetNodeId,
-            socket: type === "input" ? socket.name : targetSocketName,
-          },
-        });
-      } else {
-        console.log(
-          `No close enough node found for ${socket.name}, closest was ${closestNode} at distance ${
-            closestDistance.toFixed(
-              2,
-            )
-          }`,
+      for (
+        const [otherId, otherPos] of Object.entries(nodePositionsData.value)
+      ) {
+        if (otherId === `${nodeId}-${socket.name}` || otherPos.type === type) {
+          continue;
+        }
+        const distance = Math.sqrt(
+          (e.absoluteX - otherPos.x) ** 2 + (e.absoluteY - otherPos.y) ** 2,
         );
+
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestNode = otherId;
+        }
       }
-    } else {
-      console.log(`No connection made for ${socket.name}`);
-    }
-  });
+
+      if (closestNode && closestDistance < 50) {
+        ghostConnectionSnapTarget.value = closestNode;
+      } else {
+        ghostConnectionSnapTarget.value = null;
+      }
+    })
+    .onEnd((e) => {
+      isConnecting.value = false;
+      ghostConnectionStart.value = null;
+      ghostConnectionEnd.value = null;
+      ghostConnectionSnapTarget.value = null;
+
+      const pos = {
+        pageX: e.absoluteX,
+        pageY: e.absoluteY,
+      };
+      let closestNode: string | null = null;
+      let closestDistance = Number.POSITIVE_INFINITY;
+
+      for (
+        const [otherId, otherPos] of Object.entries(nodePositionsData.value)
+      ) {
+        if (otherId === `${nodeId}-${socket.name}` || otherPos.type === type) {
+          continue;
+        }
+        const distance = Math.sqrt(
+          (pos.pageX - otherPos.x) ** 2 + (pos.pageY - otherPos.y) ** 2,
+        );
+
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestNode = otherId;
+        }
+      }
+
+      if (closestNode) {
+        const [targetNodeId, targetSocketName] = closestNode.split("-");
+        if (closestDistance < 50) {
+          runOnJS(addConnection)({
+            from: {
+              nodeId: type === "output" ? nodeId : targetNodeId,
+              socket: type === "output" ? socket.name : targetSocketName,
+            },
+            to: {
+              nodeId: type === "input" ? nodeId : targetNodeId,
+              socket: type === "input" ? socket.name : targetSocketName,
+            },
+          });
+        }
+      }
+    });
 
   const combinedGesture = Gesture.Race(longPressGesture, panGesture);
 
@@ -136,9 +169,9 @@ const styles = StyleSheet.create({
     marginVertical: 4,
   },
   port: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     borderWidth: 2,
   },
   inputPort: {
