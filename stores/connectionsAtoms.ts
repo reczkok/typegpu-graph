@@ -49,6 +49,12 @@ export const removeConnectionsAtom = atom(
 
 export type NodePositions = Record<
   string,
-  { x: number; y: number; type: "input" | "output"; width: number; height: number }
+  {
+    x: number;
+    y: number;
+    type: "input" | "output";
+    width: number;
+    height: number;
+  }
 >;
 export const nodePositionsData = makeMutable<NodePositions>({});

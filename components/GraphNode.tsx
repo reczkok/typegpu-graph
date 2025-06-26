@@ -1,4 +1,4 @@
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { createContext } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -9,12 +9,10 @@ import Animated, {
   useSharedValue,
 } from "react-native-reanimated";
 import { Connectable } from "@/components/Connectable";
+import { ShaderCanvas } from "@/components/ShaderCanvas";
 import { NodeRegistry } from "@/runtime/nodeRegistry";
 import { graphNodesAtom, removeNodeAtom, topNodeAtom } from "@/stores";
 import type { GraphNode } from "@/stores/graphDataAtoms";
-import { compiledGraphAtom } from "@/stores/graphDataAtoms";
-import { ShaderCanvas } from "@/components/ShaderCanvas";
-import tgpu from "typegpu";
 
 export const NodeTranslateCtx = createContext<
   {
@@ -32,7 +30,6 @@ export function GraphNodeView({ node }: { node: GraphNode }) {
   const [topNode, setTopNode] = useAtom(topNodeAtom);
   const setNodes = useSetAtom(graphNodesAtom);
   const removeNode = useSetAtom(removeNodeAtom);
-  const compiledGraph = useAtomValue(compiledGraphAtom);
 
   const panGesture = Gesture.Pan()
     .onStart(() => {
