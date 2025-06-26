@@ -34,7 +34,7 @@ export function compileGraph(
       }
     }
 
-    const result = impl.compute(args);
+    const result = impl.compute(args, nodeId);
     for (const [sock, expr] of Object.entries(result)) {
       const sym = `${nodeId}_${sock}`;
       codeLines.push(`let ${sym} = ${expr};`);
@@ -46,7 +46,10 @@ export function compileGraph(
   let finalOutput = "";
   for (const [nodeId, node] of nodes.entries()) {
     if (node.type === "output") {
-      const outputImpl = NodeRegistry.get("output")!;
+      const outputImpl = NodeRegistry.get("output");
+      if (!outputImpl) {
+        throw new Error("Output node implementation not found");
+      }
       const args: Record<string, string> = {};
       for (const input of outputImpl.inputs) {
         const connection = connections.find(
@@ -55,7 +58,10 @@ export function compileGraph(
         if (!connection) {
           args[input.name] = "0";
         } else {
-          args[input.name] = walk(connection.from.nodeId, connection.from.socket);
+          args[input.name] = walk(
+            connection.from.nodeId,
+            connection.from.socket,
+          );
         }
       }
       const result = outputImpl.compute(args, nodeId);
@@ -63,5 +69,5 @@ export function compileGraph(
     }
   }
 
-  return codeLines.join("\n") + "\n" + finalOutput;
+  return `${codeLines.join("\n")}\n${finalOutput}`;
 }

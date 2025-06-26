@@ -1,13 +1,11 @@
 import type React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated";
 import ConnectionsOverlay from "@/components/ConnectionsOverlay";
-import { useAtomValue } from "jotai";
-import { compiledGraphAtom } from "@/stores/graphDataAtoms";
 
 interface CanvasProps {
   children: React.ReactNode;

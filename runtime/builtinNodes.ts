@@ -22,7 +22,7 @@ registerNode({
   ],
   outputs: [],
   compute(args) {
-    return { rgba: `vec4(${args.r},${args.g},${args.b},${args.a})` };
+    return { rgba: `vec4f(${args.r},${args.g},${args.b},${args.a})` };
   },
 });
 

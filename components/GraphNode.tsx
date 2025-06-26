@@ -92,7 +92,7 @@ export function GraphNodeView({ node }: { node: GraphNode }) {
           </View>
 
           {node.type === "output" && (
-            <Text style={styles.outputResult}>Result: {compiledGraph}</Text>
+            <Text style={styles.outputResult}>{compiledGraph}</Text>
           )}
         </Animated.View>
       </NodeTranslateCtx.Provider>

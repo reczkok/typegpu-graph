@@ -1,7 +1,7 @@
 import { useAtomValue } from "jotai";
 import { StyleSheet } from "react-native";
 import Animated, { useAnimatedProps } from "react-native-reanimated";
-import Svg, { Path, PathProps } from "react-native-svg";
+import Svg, { Path, type PathProps } from "react-native-svg";
 import { connectionsAtom, nodePositionsData } from "@/stores";
 import type { Connection } from "@/stores/connectionsAtoms";
 
@@ -35,10 +35,12 @@ export default function ConnectionsOverlay() {
 
 function Wire({ connection }: { connection: Connection }) {
   const animatedProps = useAnimatedProps<PathProps>(() => {
-    const out = nodePositionsData
-      .value[`${connection.from.nodeId}-${connection.from.socket}`]; // output socket centre
-    const inp = nodePositionsData
-      .value[`${connection.to.nodeId}-${connection.to.socket}`]; // input socket centre
+    const out = nodePositionsData.value[
+      `${connection.from.nodeId}-${connection.from.socket}`
+    ]; // output socket centre
+    const inp = nodePositionsData.value[
+      `${connection.to.nodeId}-${connection.to.socket}`
+    ]; // input socket centre
 
     if (!out || !inp) {
       return { d: "", strokeWidth: 0 };
