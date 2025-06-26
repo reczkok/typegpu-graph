@@ -52,7 +52,7 @@ export function GraphNodeView({ node }: { node: GraphNode }) {
 
   const nodeImpl = NodeRegistry.get(type);
   if (!nodeImpl) {
-    return null; // Or some error component
+    throw new Error(`Node type "${type}" not found in registry`);
   }
 
   const handleValueChange = (newValue: string) => {

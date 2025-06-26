@@ -34,7 +34,7 @@ export function Connectable({ nodeId, socket, type }: ConnectableProps) {
     if (!m) return;
     nodePositionsData.value = {
       ...nodePositionsData.value,
-      [nodeId + "-" + socket.name]: {
+      [`${nodeId}-${socket.name}`]: {
         x: m.pageX + m.width / 2,
         y: m.pageY + m.height / 2,
         type,
@@ -53,12 +53,12 @@ export function Connectable({ nodeId, socket, type }: ConnectableProps) {
       pageY: e.absoluteY,
     };
     let closestNode: string | null = null;
-    let closestDistance = Infinity;
+    let closestDistance = Number.POSITIVE_INFINITY;
 
     console.log(`Node ${socket.name} position:`, pos);
 
     for (const [otherId, otherPos] of Object.entries(nodePositionsData.value)) {
-      if (otherId === (nodeId + "-" + socket.name) || otherPos.type === type) {
+      if (otherId === (`${nodeId}-${socket.name}`) || otherPos.type === type) {
         continue;
       }
       const distance = Math.sqrt(

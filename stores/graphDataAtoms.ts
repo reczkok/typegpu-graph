@@ -8,7 +8,7 @@ export interface GraphNode {
   type: string;
   x: number;
   y: number;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
 }
 
 const initialNodes: GraphNode[] = [
@@ -41,12 +41,12 @@ export const removeNodeAtom = atom(null, (get, set, nodeId: string) => {
     // Also remove connections associated with the removed node
     const currentConnections = get(connectionsAtom);
     const filteredConnections = currentConnections.filter((conn) => {
-      // Filter out malformed connections (where conn, conn.source, or conn.target is undefined/null)
-      if (!conn || !conn.source || !conn.target) {
+      // Filter out malformed connections (where conn, conn.from, or conn.to is undefined/null)
+      if (!conn || !conn.from || !conn.to) {
         return false;
       }
       // Keep the connection only if neither its source nor its target is the node being removed
-      return conn.source.nodeId !== nodeId && conn.target.nodeId !== nodeId;
+      return conn.from.nodeId !== nodeId && conn.to.nodeId !== nodeId;
     });
     set(connectionsAtom, filteredConnections);
 

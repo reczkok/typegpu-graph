@@ -1,34 +1,71 @@
-import { useAtomValue } from "jotai";
-import { useEffect } from "react";
-import { Canvas } from "@/components/Canvas";
-import { GraphNode } from "@/components/GraphNode";
-import { graphNodesAtom } from "@/stores";
+import { useRouter } from "expo-router";
+import { useSetAtom } from "jotai";
+import { FlatList, Pressable, StyleSheet, View } from "react-native";
+import { NodeCardDisplay } from "@/components/NodeCardDisplay";
+import { NodeRegistry } from "@/runtime/nodeRegistry";
+import { addNodeAtom } from "@/stores/graphDataAtoms";
 
-export default function TabTwoScreen() {
-  const nodes = useAtomValue(graphNodesAtom);
+export default function NodeLibraryScreen() {
+  const addNode = useSetAtom(addNodeAtom);
+  const router = useRouter();
+  // Filter out 'input' and 'output' nodes as they are special
+  const availableNodes = Array.from(NodeRegistry.keys()).filter(
+    (type) => type !== "input" && type !== "output",
+  );
 
-  useEffect(() => {
-    console.log("Initial node positions:");
-    for (const node of Object.values(nodes)) {
-      console.log(`Node ${node.title} initial position:`, {
-        x: node.initialX,
-        y: node.initialY,
-      });
-    }
-  }, [nodes]);
+  const handleAddNode = (type: string) => {
+    addNode(type);
+    router.push("/"); // Navigate back to the Graph tab
+  };
+
+  const renderItem = ({ item }: { item: string }) => (
+    <Pressable
+      key={item}
+      onPress={() => handleAddNode(item)}
+    >
+      <NodeCardDisplay nodeType={item} />
+    </Pressable>
+  );
 
   return (
-    <Canvas>
-      {Object.values(nodes).map((node) => (
-        <GraphNode
-          key={node.title}
-          title={node.title}
-          inputs={node.inputs}
-          outputs={node.outputs}
-          initialX={node.initialX}
-          initialY={node.initialY}
-        />
-      ))}
-    </Canvas>
+    <View style={styles.container}>
+      <FlatList
+        data={availableNodes}
+        renderItem={renderItem}
+        keyExtractor={(item) => item}
+        numColumns={2} // Display in a grid
+        contentContainerStyle={styles.gridContainer}
+      />
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: "#1a1a1a", // Dark background for the library
+  },
+  gridContainer: {
+    justifyContent: "center",
+  },
+  nodeCard: {
+    flex: 1,
+    margin: 8,
+    padding: 20,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 100,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  nodeText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    textTransform: "capitalize",
+  },
+});

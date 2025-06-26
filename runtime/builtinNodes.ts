@@ -42,8 +42,10 @@ registerNode({
   type: "constant",
   inputs: [],
   outputs: [{ name: "out", kind: "number" }],
-  compute(args, node) {
-    return { out: `${parseFloat(node.data?.value ?? 1.0).toFixed(4)}` };
+  compute(_, node) {
+    return {
+      out: `${Number.parseFloat(String(node.data?.value ?? 1.0)).toFixed(4)}`,
+    };
   },
 });
 
