@@ -27,8 +27,7 @@ export function Canvas({ children }: CanvasProps) {
     .onUpdate((e) => {
       translateX.value = prevTranslateX.value + e.translationX;
       translateY.value = prevTranslateY.value + e.translationY;
-    })
-    .runOnJS(true);
+    });
 
   const pinchGesture = Gesture.Pinch()
     .onStart(() => {
@@ -40,8 +39,7 @@ export function Canvas({ children }: CanvasProps) {
         maxScale,
         Math.max(minScale, prevScale.value * e.scale),
       );
-    })
-    .runOnJS(true);
+    });
 
   const composedGesture = Gesture.Simultaneous(panGesture, pinchGesture);
 
