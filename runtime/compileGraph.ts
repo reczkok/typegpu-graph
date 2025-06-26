@@ -43,14 +43,25 @@ export function compileGraph(
     return `${nodeId}_${socketName}`;
   }
 
-  let outputString = "";
+  let finalOutput = "";
   for (const [nodeId, node] of nodes.entries()) {
     if (node.type === "output") {
-      for (const input of NodeRegistry.get("output")!.inputs) {
-        outputString += walk(nodeId, input.name);
+      const outputImpl = NodeRegistry.get("output")!;
+      const args: Record<string, string> = {};
+      for (const input of outputImpl.inputs) {
+        const connection = connections.find(
+          (c) => c.to.nodeId === nodeId && c.to.socket === input.name,
+        );
+        if (!connection) {
+          args[input.name] = "0";
+        } else {
+          args[input.name] = walk(connection.from.nodeId, connection.from.socket);
+        }
       }
+      const result = outputImpl.compute(args, nodeId);
+      finalOutput = result.rgba;
     }
   }
 
-  return outputString;
+  return codeLines.join("\n") + "\n" + finalOutput;
 }

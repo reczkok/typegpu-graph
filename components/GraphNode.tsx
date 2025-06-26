@@ -1,4 +1,4 @@
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { createContext } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -11,6 +11,7 @@ import Animated, {
 import { Connectable } from "@/components/Connectable";
 import { NodeRegistry } from "@/runtime/nodeRegistry";
 import { topNodeAtom } from "@/stores";
+import { compiledGraphAtom } from "@/stores/graphDataAtoms";
 import type { GraphNode } from "@/stores/graphDataAtoms";
 
 export const NodeTranslateCtx = createContext<
@@ -27,6 +28,7 @@ export function GraphNodeView({ node }: { node: GraphNode }) {
   const startX = useSharedValue(0);
   const startY = useSharedValue(0);
   const [topNode, setTopNode] = useAtom(topNodeAtom);
+  const compiledGraph = useAtomValue(compiledGraphAtom);
 
   const panGesture = Gesture.Pan()
     .onStart(() => {
@@ -88,6 +90,10 @@ export function GraphNodeView({ node }: { node: GraphNode }) {
               ))}
             </View>
           </View>
+
+          {node.type === "output" && (
+            <Text style={styles.outputResult}>Result: {compiledGraph}</Text>
+          )}
         </Animated.View>
       </NodeTranslateCtx.Provider>
     </GestureDetector>
@@ -152,6 +158,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#FF9800",
     borderColor: "#E65100",
     marginLeft: 6,
+  },
+  outputResult: {
+    color: "#fff",
+    fontSize: 10,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: "#444",
+    borderRadius: 4,
+    backgroundColor: "#333",
+    flexWrap: "nowrap",
   },
   portLabel: {
     color: "#ccc",
