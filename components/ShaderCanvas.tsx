@@ -15,7 +15,9 @@ import tgpu, {
 import * as d from "typegpu/data";
 import { compiledGraphAtom } from "@/stores";
 
-export function ShaderCanvas() {
+export function ShaderCanvas(
+  { width, height }: { width?: number; height?: number },
+) {
   const compiledGraph = useAtomValue(compiledGraphAtom);
 
   const gpuRef = useRef<
@@ -103,7 +105,10 @@ export function ShaderCanvas() {
 
   return (
     <View style={styles.container}>
-      <Canvas ref={canvasRef} style={styles.webgpu} />
+      <Canvas
+        ref={canvasRef}
+        style={width && height ? { width, height } : styles.webgpu}
+      />
     </View>
   );
 }
@@ -122,5 +127,5 @@ function makePipeline(
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  webgpu: { flex: 1, width: "20%", height: "20%", aspectRatio: 1 },
+  webgpu: { flex: 1 },
 });

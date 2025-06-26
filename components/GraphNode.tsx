@@ -95,17 +95,24 @@ export function GraphNodeView({ node }: { node: GraphNode }) {
               ))}
             </View>
 
-            {/* Outputs on the right */}
-            <View style={styles.outputsContainer}>
-              {nodeImpl.outputs.map((output) => (
-                <Connectable
-                  key={`output-${id}-${output.name}`}
-                  nodeId={id}
-                  socket={output}
-                  type="output"
-                />
-              ))}
-            </View>
+            {node.type === "output"
+              ? (
+                <View style={styles.shaderCanvasContainer}>
+                  <ShaderCanvas width={150} height={150} />
+                </View>
+              )
+              : (
+                <View style={styles.outputsContainer}>
+                  {nodeImpl.outputs.map((output) => (
+                    <Connectable
+                      key={`output-${id}-${output.name}`}
+                      nodeId={id}
+                      socket={output}
+                      type="output"
+                    />
+                  ))}
+                </View>
+              )}
           </View>
 
           {node.type === "constant" && (
@@ -116,8 +123,6 @@ export function GraphNodeView({ node }: { node: GraphNode }) {
               keyboardType="numeric"
             />
           )}
-
-          {node.type === "output" && <ShaderCanvas />}
         </Animated.View>
       </NodeTranslateCtx.Provider>
     </GestureDetector>
@@ -152,15 +157,20 @@ const styles = StyleSheet.create({
   nodeBody: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
+    alignItems: "center",
   },
   inputsContainer: {
-    flex: 1,
+    width: 80,
     alignItems: "flex-start",
   },
   outputsContainer: {
     flex: 1,
     alignItems: "flex-end",
+  },
+  shaderCanvasContainer: {
+    alignSelf: "center",
+    borderRadius: 8,
+    overflow: "hidden",
   },
   portRow: {
     flexDirection: "row",
