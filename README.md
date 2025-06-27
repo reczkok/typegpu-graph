@@ -1,60 +1,33 @@
-# Welcome to your Expo app 👋
+# TypeGPU Graph
 
-This is an [Expo](https://expo.dev) project created with
-[`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This project is a visual, node-based graph editor for creating and experimenting with GPU shaders, built with React Native, Expo, and leveraging WebGPU for rendering.
 
-## Get started
+## Features
 
-1. Install dependencies
+*   **Visual Node Editor:** Create, connect, and manipulate nodes in a 2D canvas.
+*   **Drag & Drop Interface:** Use gestures to pan the canvas and move nodes.
+*   **Shader Graph Compilation:** The node graph is compiled into a single shader.
+*   **Real-time Preview:** View the output of your shader graph in real-time.
 
-   ```bash
-   npm install
-   ```
+## Core Technologies
 
-2. Start the app
+*   **React Native & Expo:** For cross-platform development on iOS, Android, and Web.
+*   **Jotai:** For state management of the graph, nodes, and connections.
+*   **React Native Gesture Handler & Reanimated:** For a fluid and responsive user interface.
+    **React Native SVG:** For rendering everything I was too lazy to write a shader for.
+*   **TypeGPU** For easy, type-safe and maintainable shader code generation.
 
-   ```bash
-   npx expo start
-   ```
+## Getting Started
 
-In the output, you'll find options to open the app in a
+1.  **Install dependencies:**
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app
-  development with Expo
+    ```bash
+    yarn install
+    ```
 
-You can start developing by editing the files inside the **app** directory. This
-project uses [file-based routing](https://docs.expo.dev/router/introduction).
+2.  **Prebuild and start the Expo project:**
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and
-create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following
-resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into
-  advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a
-  step-by-step tutorial where you'll create a project that runs on Android, iOS,
-  and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform
-  and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask
-  questions.
+    ```bash
+    npx expo prebuild
+    npx expo start
+    ```
