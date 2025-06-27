@@ -1,6 +1,6 @@
 # TypeGPU Graph
 
-https://github.com/user-attachments/assets/ec1afa52-df04-4381-9c53-cdf92ad4c393
+https://github.com/user-attachments/assets/28c0f9f9-6aea-412e-bab2-d03d38f38492
 
 This project is a visual, node-based graph editor for creating and experimenting with GPU shaders, built with React Native, Expo, and leveraging WebGPU for rendering.
 
