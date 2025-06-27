@@ -36,12 +36,16 @@ export const addConnectionAtom = atom(
 
 export const removeConnectionsAtom = atom(
   null,
-  (get, set, nodeId: string) => {
+  (get, set, nodeId: string, socket: string) => {
     const connections = get(connectionsAtom);
     set(
       connectionsAtom,
       connections.filter(
-        (conn) => conn.from.nodeId !== nodeId && conn.to.nodeId !== nodeId,
+        (conn) =>
+          !(
+            (conn.from.nodeId === nodeId && conn.from.socket === socket) ||
+            (conn.to.nodeId === nodeId && conn.to.socket === socket)
+          ),
       ),
     );
   },
@@ -60,7 +64,9 @@ export type NodePositions = Record<
 export const nodePositionsData = makeMutable<NodePositions>({});
 
 export const isConnecting = makeMutable(false);
-export const ghostConnectionStart = makeMutable<{ x: number; y: number } | null>(
+export const ghostConnectionStart = makeMutable<
+  { x: number; y: number } | null
+>(
   null,
 );
 export const ghostConnectionEnd = makeMutable<{ x: number; y: number } | null>(

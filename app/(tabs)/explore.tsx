@@ -33,7 +33,7 @@ export default function NodeLibraryScreen() {
         data={availableNodes}
         renderItem={renderItem}
         keyExtractor={(item) => item}
-        numColumns={2} // Display in a grid
+        numColumns={2}
         contentContainerStyle={styles.gridContainer}
       />
     </View>
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: "#1a1a1a", // Dark background for the library
+    backgroundColor: "#1a1a1a",
   },
   gridContainer: {
     justifyContent: "center",

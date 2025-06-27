@@ -8,7 +8,7 @@ import Animated, {
   useAnimatedRef,
   useDerivedValue,
 } from "react-native-reanimated";
-import { NodeTranslateCtx } from "@/components/GraphNode";
+import { NodeTranslateCtx } from "@/components/NodeTranslateContext";
 import type { Socket } from "@/runtime/nodeRegistry";
 import {
   addConnectionAtom,
@@ -50,7 +50,7 @@ export function Connectable({ nodeId, socket, type }: ConnectableProps) {
 
   const longPressGesture = Gesture.LongPress().onStart(() => {
     console.log(`Long press on ${socket.name}, removing connections`);
-    runOnJS(removeConnections)(nodeId);
+    runOnJS(removeConnections)(nodeId, socket.name);
   });
 
   const panGesture = Gesture.Pan()
